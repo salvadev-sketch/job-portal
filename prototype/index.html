@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insiderjobs — Ledger Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0;
+    --paper-raised:#FFFFFF;
+    --ink:#14213D;
+    --ink-soft:#2B3A5E;
+    --signal:#FFB100;
+    --signal-deep:#C98600;
+    --slate:#5C6470;
+    --line:#DAD6CC;
+    --accept:#3C7A5D;
+    --reject:#B4483A;
+    --radius:2px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--signal); color:var(--ink);}
+
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace; letter-spacing:0.02em;}
+
+  /* ---------- Nav ---------- */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 40px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--paper); z-index:50;
+  }
+  .brand{
+    font-family:'Fraunces', serif; font-weight:700; font-size:22px;
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .brand .dot{color:var(--signal-deep);}
+  .nav-right{display:flex; align-items:center; gap:28px;}
+  .nav-link{
+    font-size:13px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--slate); cursor:pointer; border:none; background:none;
+    font-family:'Inter',sans-serif; font-weight:600;
+  }
+  .nav-link.active{color:var(--ink);}
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
+    padding:10px 20px; border-radius:var(--radius); border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); cursor:pointer;
+    letter-spacing:0.02em;
+    transition:transform .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn.outline{background:transparent; color:var(--ink);}
+  .btn.small{padding:6px 14px; font-size:12px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:70px 40px 50px;
+    max-width:1100px; margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-size:12px; text-transform:uppercase; letter-spacing:0.14em;
+    color:var(--signal-deep); font-weight:700; margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:''; width:22px; height:1px; background:var(--signal-deep);}
+  .hero h1{font-size:56px; line-height:1.05; max-width:680px;}
+  .hero p{color:var(--slate); font-size:16px; max-width:480px; margin-top:18px; line-height:1.6;}
+
+  .search-ledger{
+    margin-top:36px; display:flex; border:1px solid var(--ink); border-radius:var(--radius);
+    overflow:hidden; max-width:640px; background:var(--paper-raised);
+  }
+  .search-ledger input{
+    flex:1; border:none; padding:16px 18px; font-family:'Inter'; font-size:14px;
+    outline:none; background:transparent; color:var(--ink);
+  }
+  .search-ledger input:not(:first-child){border-left:1px solid var(--line);}
+  .search-ledger button{
+    border:none; background:var(--signal); color:var(--ink); font-weight:700;
+    padding:0 26px; cursor:pointer; font-family:'Inter'; font-size:13px;
+    text-transform:uppercase; letter-spacing:0.06em;
+  }
+
+  /* ---------- Layout ---------- */
+  .board{
+    max-width:1100px; margin:0 auto; padding:50px 40px 100px;
+    display:grid; grid-template-columns:220px 1fr; gap:56px;
+  }
+  .filters h3{font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--slate); margin-bottom:16px;}
+  .filter-item{
+    font-size:14px; padding:9px 0; border-bottom:1px solid var(--line);
+    cursor:pointer; display:flex; justify-content:space-between; color:var(--ink-soft);
+  }
+  .filter-item span.count{color:var(--slate); font-family:'IBM Plex Mono'; font-size:12px;}
+  .filter-item.active{color:var(--signal-deep); font-weight:600;}
+
+  .listing-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px;}
+  .listing-head h2{font-size:26px;}
+  .listing-head .mono{color:var(--slate); font-size:12px;}
+
+  .job-row{
+    display:grid; grid-template-columns:34px 1fr auto auto;
+    align-items:center; gap:20px;
+    padding:22px 0; border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .job-row .idx{font-family:'IBM Plex Mono'; color:var(--slate); font-size:13px;}
+  .job-title{font-size:17px; font-weight:600; font-family:'Fraunces'; margin-bottom:4px;}
+  .job-meta{font-size:13px; color:var(--slate); display:flex; gap:14px;}
+  .tag{
+    font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase;
+    padding:4px 8px; border:1px solid var(--line); border-radius:var(--radius); color:var(--ink-soft);
+  }
+  .salary{font-family:'IBM Plex Mono'; font-size:14px; text-align:right; color:var(--ink);}
+  .stamp{
+    position:absolute; right:180px; top:14px;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:12px;
+    color:var(--accept); border:2px solid var(--accept); border-radius:4px;
+    padding:2px 8px; transform:rotate(-8deg) scale(0);
+    letter-spacing:0.08em; pointer-events:none;
+    transition:transform .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  .stamp.show{transform:rotate(-8deg) scale(1);}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,33,61,0.55);
+    display:none; align-items:center; justify-content:center; z-index:100;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--paper-raised); width:380px; padding:36px 32px;
+    border-radius:var(--radius); border:1px solid var(--line);
+  }
+  .modal h3{font-size:20px; margin-bottom:6px;}
+  .modal p.sub{color:var(--slate); font-size:13px; margin-bottom:24px;}
+  .modal .btn{width:100%; margin-bottom:10px;}
+  .modal input{
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:14px; font-family:'Inter'; font-size:14px;
+  }
+  .divider{display:flex; align-items:center; gap:10px; color:var(--slate); font-size:12px; margin:14px 0;}
+  .divider::before,.divider::after{content:''; flex:1; height:1px; background:var(--line);}
+  .close-x{position:absolute; top:16px; right:20px; cursor:pointer; color:var(--slate); font-size:18px; background:none; border:none;}
+  .modal-wrap{position:relative;}
+
+  /* ---------- Recruiter dashboard ---------- */
+  .dash{display:none; max-width:1100px; margin:0 auto; padding:50px 40px 100px; grid-template-columns:190px 1fr; gap:56px;}
+  .dash.show{display:grid;}
+  .board.hide{display:none;}
+  .dash-nav{font-size:13px;}
+  .dash-nav .item{
+    padding:10px 0; color:var(--slate); cursor:pointer; border-bottom:1px solid var(--line);
+    font-weight:600;
+  }
+  .dash-nav .item.active{color:var(--signal-deep);}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{
+    text-align:left; text-transform:uppercase; letter-spacing:0.06em; font-size:11px;
+    color:var(--slate); padding-bottom:12px; border-bottom:1px solid var(--ink);
+  }
+  td{padding:14px 0; border-bottom:1px solid var(--line); color:var(--ink-soft);}
+  .status{
+    font-family:'IBM Plex Mono'; font-size:11px; padding:3px 9px; border-radius:20px;
+    text-transform:uppercase;
+  }
+  .status.accepted{background:rgba(60,122,93,0.12); color:var(--accept);}
+  .status.rejected{background:rgba(180,72,58,0.12); color:var(--reject);}
+  .status.pending{background:rgba(255,177,0,0.16); color:var(--signal-deep);}
+
+  footer{
+    border-top:1px solid var(--line); padding:30px 40px; text-align:center;
+    color:var(--slate); font-size:12px; font-family:'IBM Plex Mono';
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand"><span class="dot">◆</span> Insiderjobs</div>
+  <div class="nav-right">
+    <button class="nav-link active" id="tab-jobs">Listings</button>
+    <button class="nav-link" id="tab-recruiter">Recruiter</button>
+    <button class="btn small" id="login-btn">Sign in</button>
+  </div>
+</nav>
+
+<!-- JOB SEEKER VIEW -->
+<div id="seeker-view">
+  <div class="hero">
+    <div class="eyebrow">Ledger №0847 — Open Roles</div>
+    <h1>Every open role, filed and dated.</h1>
+    <p>Search 10,000+ positions the way a hiring desk actually tracks them — indexed, timestamped, no noise.</p>
+    <div class="search-ledger">
+      <input type="text" placeholder="Role, e.g. Cloud Engineer" id="search-role">
+      <input type="text" placeholder="Location" id="search-loc">
+      <button id="search-btn">Search</button>
+    </div>
+  </div>
+
+  <div class="board" id="board">
+    <div class="filters">
+      <h3>Category</h3>
+      <div class="filter-item active">Programming <span class="count">14</span></div>
+      <div class="filter-item">Data Science <span class="count">6</span></div>
+      <div class="filter-item">Design <span class="count">9</span></div>
+      <div class="filter-item">Networking <span class="count">4</span></div>
+      <div class="filter-item">Management <span class="count">5</span></div>
+      <div class="filter-item">Marketing <span class="count">7</span></div>
+      <div class="filter-item">Cybersecurity <span class="count">3</span></div>
+    </div>
+
+    <div class="listing">
+      <div class="listing-head">
+        <h2>Latest filings</h2>
+        <span class="mono">SORTED BY DATE DESC</span>
+      </div>
+      <div id="job-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RECRUITER DASHBOARD -->
+<div class="dash" id="dash-view">
+  <div class="dash-nav">
+    <div class="item active" data-pane="add">＋ Add role</div>
+    <div class="item" data-pane="manage">Manage roles</div>
+    <div class="item" data-pane="apps">View applicants</div>
+  </div>
+
+  <div id="pane-add">
+    <div class="listing-head"><h2>File a new role</h2></div>
+    <div style="display:grid; gap:14px; max-width:480px;">
+      <input placeholder="Job title" style="padding:12px;border:1px solid var(--line);border-radius:2px;font-family:Inter">
+      <input placeholder="Location" style="padding:12px;border:1px solid var(--line);border-radius:2px;font-family:Inter">
+      <input placeholder="Salary (annual)" style="padding:12px;border:1px solid var(--line);border-radius:2px;font-family:Inter">
+      <button class="btn" style="width:fit-content;">File role</button>
+    </div>
+  </div>
+
+  <div id="pane-manage" style="display:none;">
+    <div class="listing-head"><h2>Manage roles</h2></div>
+    <table>
+      <tr><th>Role</th><th>Location</th><th>Applicants</th><th>Visible</th></tr>
+      <tr><td>Cloud Engineer</td><td>Hyderabad</td><td>1</td><td>✓</td></tr>
+      <tr><td>Network Security Engineer</td><td>Bangalore</td><td>1</td><td>✓</td></tr>
+      <tr><td>Software Tester</td><td>Chennai</td><td>0</td><td>✓</td></tr>
+      <tr><td>Graphic Designer</td><td>Chennai</td><td>1</td><td>✓</td></tr>
+    </table>
+  </div>
+
+  <div id="pane-apps" style="display:none;">
+    <div class="listing-head"><h2>Applicants</h2></div>
+    <table>
+      <tr><th>Name</th><th>Role</th><th>Location</th><th>Status</th></tr>
+      <tr><td>Great Stack</td><td>DevOps Engineer</td><td>Bangalore</td><td><span class="status pending">Pending</span></td></tr>
+      <tr><td>Great Stack</td><td>Content Marketing Mgr</td><td>Mumbai</td><td><span class="status accepted">Accepted</span></td></tr>
+      <tr><td>Great Stack</td><td>Full Stack Developer</td><td>California</td><td><span class="status rejected">Rejected</span></td></tr>
+      <tr><td>Great Stack</td><td>Cloud Engineer</td><td>Hyderabad</td><td><span class="status accepted">Accepted</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="overlay" id="login-overlay">
+  <div class="modal modal-wrap">
+    <button class="close-x" id="close-login">×</button>
+    <h3>Sign in to Insiderjobs</h3>
+    <p class="sub">Welcome back. Please sign in to continue.</p>
+    <button class="btn outline">◎ Continue with Google</button>
+    <div class="divider">or</div>
+    <input placeholder="Email address">
+    <button class="btn">Continue →</button>
+  </div>
+</div>
+
+<footer>© 2026 INSIDERJOBS — LEDGER PROTOTYPE, NO BACKEND</footer>
+
+<script>
+const jobs = [
+  {t:"Cloud Engineer", co:"Google", loc:"Hyderabad", lvl:"Intermediate", sal:"₹102k"},
+  {t:"Network Security Engineer", co:"Google", loc:"Bangalore", lvl:"Senior", sal:"₹118k"},
+  {t:"Software Tester", co:"Google", loc:"Chennai", lvl:"Intermediate", sal:"₹86k"},
+  {t:"Graphic Designer", co:"Google", loc:"Chennai", lvl:"Beginner", sal:"₹72k"},
+  {t:"Content Marketing Manager", co:"Google", loc:"Mumbai", lvl:"Intermediate", sal:"₹94k"},
+  {t:"Human Resources Specialist", co:"Google", loc:"Washington", lvl:"Intermediate", sal:"₹90k"},
+];
+
+const list = document.getElementById('job-list');
+jobs.forEach((j,i)=>{
+  const row = document.createElement('div');
+  row.className = 'job-row';
+  row.innerHTML = `
+    <div class="idx">${String(i+1).padStart(2,'0')}</div>
+    <div>
+      <div class="job-title">${j.t}</div>
+      <div class="job-meta">
+        <span>${j.co}</span><span>${j.loc}</span>
+        <span class="tag">${j.lvl}</span>
+      </div>
+    </div>
+    <div class="salary">${j.sal}/yr</div>
+    <div style="position:relative;">
+      <div class="stamp">APPLIED</div>
+      <button class="btn small apply-btn">Apply now</button>
+    </div>
+  `;
+  list.appendChild(row);
+});
+
+document.getElementById('job-list').addEventListener('click', e=>{
+  if(e.target.classList.contains('apply-btn')){
+    const stamp = e.target.parentElement.querySelector('.stamp');
+    stamp.classList.add('show');
+    e.target.textContent = 'Already applied';
+    e.target.disabled = true;
+    e.target.style.opacity = 0.6;
+  }
+});
+
+// login modal
+const overlay = document.getElementById('login-overlay');
+document.getElementById('login-btn').onclick = ()=> overlay.classList.add('show');
+document.getElementById('close-login').onclick = ()=> overlay.classList.remove('show');
+overlay.onclick = e=>{ if(e.target===overlay) overlay.classList.remove('show'); };
+
+// tabs
+const tabJobs = document.getElementById('tab-jobs');
+const tabRec = document.getElementById('tab-recruiter');
+const seeker = document.getElementById('seeker-view');
+const dash = document.getElementById('dash-view');
+
+tabJobs.onclick = ()=>{
+  tabJobs.classList.add('active'); tabRec.classList.remove('active');
+  seeker.style.display='block'; dash.classList.remove('show');
+};
+tabRec.onclick = ()=>{
+  tabRec.classList.add('active'); tabJobs.classList.remove('active');
+  seeker.style.display='none'; dash.classList.add('show');
+};
+
+// dash panes
+document.querySelectorAll('.dash-nav .item').forEach(item=>{
+  item.onclick = ()=>{
+    document.querySelectorAll('.dash-nav .item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    ['add','manage','apps'].forEach(p=>{
+      document.getElementById('pane-'+p).style.display = (p===item.dataset.pane)?'block':'none';
+    });
+  };
+});
+</script>
+</body>
+</html>
